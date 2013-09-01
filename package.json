@@ -24,7 +24,8 @@
   "devDependencies": {
     "jshint": "~2.1.10",
     "grunt": "~0.4.1",
-    "grunt-contrib-jshint": "~0.6.3"
+    "grunt-contrib-jshint": "~0.6.3",
+    "grunt-contrib-nodeunit": "~0.2.0"
   },
   "author": "Bas van der Heijden",
   "license": "BSD"

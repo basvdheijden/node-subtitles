@@ -32,13 +32,18 @@ module.exports = function(grunt) {
         'quotmark': 'single',
         'trailing': true
       }
+    },
+
+    nodeunit: {
+      all: ['tests/*.test.js']
     }
   };
 
   grunt.initConfig(gruntSettings);
 
   grunt.loadNpmTasks('grunt-contrib-jshint');
+  grunt.loadNpmTasks('grunt-contrib-nodeunit');
 
   // Run all tests
-  grunt.registerTask('default', ['jshint']);
+  grunt.registerTask('default', ['jshint', 'nodeunit']);
 };

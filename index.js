@@ -17,18 +17,18 @@ module.exports = exports = function(file, cb) {
   self.file = file;
   self.basename = path.basename(file);
   self.cb = cb;
-  self.subtitles = [];
+  self.subtitles = {};
+  self.api = new OpenSubtitles('', '', 'nl');
 
   self.start = function() {
-    self.api = new OpenSubtitles('', '', 'nl');
     self.api.computeHash(self.file, function(err, size) {
       if (err) {
         self.cb(err, false);
         return;
       }
 
-      debug('Size determined for ' + self.basename);
-      self.api.checkMovieHash([size], function(err, res) {
+      debug('Size determined for ' + self.basename + '. ' + size);
+      self.api.api.CheckMovieHash(function(err, res) {
         if (err) {
           debug('checkMovieHash returned error for ' + self.file);
           self.cb(err, false);
@@ -42,7 +42,8 @@ module.exports = exports = function(file, cb) {
         }
 
         var data = res.data[size];
-        var token = res.token;
+
+        debug('Data: ' + res.data[size].MovieHash + ' - Token: ' + self.token);
 
         var searchArguments = [{
           moviebytesize: self.api.file_size,
@@ -60,7 +61,7 @@ module.exports = exports = function(file, cb) {
           sublanguageid: 'en'
         }, {
           query: data.MovieName,
-          sublanguageid: 'dut',
+          sublanguageid: 'dut'
         }, {
           query: data.MovieName,
           sublanguageid: 'en'
@@ -70,10 +71,11 @@ module.exports = exports = function(file, cb) {
 
         async.series(searchArguments.map(function(item) {
           return function(cb) {
-            self.search(item, token, cb);
+            self.search(item, self.token, cb);
           };
         }), function() {
-          self.subtitles.forEach(function(subtitle, index) {
+          Object.keys(self.subtitles).forEach(function(key, index) {
+            var subtitle = self.subtitles[key];
             var fileName = util.format('%s/%s.%s.%s.%s', path.dirname(self.original), path.basename(self.original), subtitle.IDSubtitleFile, subtitle.ISO639, 'srt');
 
             debug('Created filename: ' + fileName + ' for downloadLink: ' + subtitle.SubDownloadLink);
@@ -100,9 +102,13 @@ module.exports = exports = function(file, cb) {
             }, index * 100);
           });
 
-          self.cb(null, self.subtitles);
+          var result = Object.keys(self.subtitles).map(function(key) {
+            return self.subtitles[key];
+          });
+
+          self.cb(null, result);
         });
-      });
+      }, self.token, [size]);
     });
   };
 
@@ -113,26 +119,65 @@ module.exports = exports = function(file, cb) {
       return;
     }
 
+    debug('Searching with arg: ' + JSON.stringify(arg));
+    debug('Searching with token: ' + token);
+
     self.api.api.SearchSubtitles(function(err, res) {
       if (err) {
+        debug('There was an error while searching the subtitles.');
         cb();
         return;
       }
 
       if (typeof res.data === 'undefined' || res.data === false || res.data.length === 0) {
+        debug('There was no result from searching the subtitles.');
         cb();
         return;
       }
 
-      if (res.data.length >= self.max) {
-        res.data = res.data.splice(0, 10);
+      debug('%d subtitles found.', res.data.length);
+
+      var subs = res.data.filter(function(item) {
+        if (typeof item.SubDownloadLink === 'undefined' || typeof self.subtitles[item.SubDownloadLink] !== 'undefined') {
+          return false;
+        }
+
+        return true;
+      });
+
+      debug('%d subtitles left.', subs.length);
+
+      if (subs.length >= self.max) {
+        debug('There were many subtitles. Slicing 10 items.');
+        subs = subs.splice(0, 10);
       }
 
-      debug('Subtitles found.');
-      self.subtitles = self.subtitles.concat(res.data);
+      subs.map(function(item) {
+        self.subtitles[item.SubDownloadLink] = item;
+      });
+
+      debug('Currently having %d subtitle(s) globally.', Object.keys(self.subtitles).length);
+
       cb();
     }, token, [arg]);
   };
 
-  self.start();
+  self.api.api.LogIn(function(err, res) {
+    if (err) {
+      debug('Error while logging into OpenSubtitles.');
+      self.cb(err);
+      return;
+    }
+
+    if (!res.token) {
+      var msg = 'Did not get token for session.';
+      debug(msg);
+      self.cb(new Error('msg'));
+      return;
+    }
+
+    debug('Logged in succesfully.');
+    self.token = res.token;
+    self.start();
+  }, '', '', 'nl', 'NodeOpensubtitles v0.0.1');
 };
