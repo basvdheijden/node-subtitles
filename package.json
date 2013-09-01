@@ -1,0 +1,19 @@
+{
+  "name": "node-subtitles",
+  "version": "0.0.0",
+  "description": "Automatically downloads subtitles for a given folder",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@mieris.com:projects/node-subtitles"
+  },
+  "keywords": [
+    "subtitles",
+    "opensubtitles"
+  ],
+  "author": "Bas van der Heijden",
+  "license": "BSD"
+}
