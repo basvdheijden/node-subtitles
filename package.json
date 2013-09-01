@@ -14,6 +14,18 @@
     "subtitles",
     "opensubtitles"
   ],
+  "dependencies": {
+    "opensubtitles": "https://github.com/ka2er/node-opensubtitles-api/tarball/master#49c779229a",
+    "hyperquest": "~0.1.5",
+    "glob": "~3.2.1",
+    "async": "~0.2.8",
+    "debug": "~0.7.2"
+  },
+  "devDependencies": {
+    "jshint": "~2.1.10",
+    "grunt": "~0.4.1",
+    "grunt-contrib-jshint": "~0.6.3"
+  },
   "author": "Bas van der Heijden",
   "license": "BSD"
 }
