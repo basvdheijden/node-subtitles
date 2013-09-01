@@ -1,6 +1,6 @@
 {
   "name": "node-subtitles",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Automatically downloads subtitles for a given folder",
   "main": "index.js",
   "scripts": {
