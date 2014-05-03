@@ -1,6 +1,5 @@
 var OpenSubtitles = require('opensubtitles'),
   fs = require('fs'),
-//  glob = require('glob'),
   hyperquest = require('hyperquest'),
   debug = require('debug')('subtitles'),
   path = require('path'),
